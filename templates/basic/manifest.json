@@ -1,0 +1,8 @@
+{
+  "$schema": "./node_modules/@whatszori/plugin-sdk/schema/manifest.schema.json",
+  "id": "{{id}}",
+  "name": "{{name}}",
+  "version": "0.1.0",
+  "description": "A WhatsZori plugin",
+  "author": "{{author}}"
+}

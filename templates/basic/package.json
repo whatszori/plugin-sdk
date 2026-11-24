@@ -1,0 +1,17 @@
+{
+  "name": "{{id}}",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wz-plugin dev",
+    "build": "wz-plugin build",
+    "install-plugin": "wz-plugin install",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.31",
+    "@whatszori/plugin-sdk": "^{{sdkVersion}}",
+    "typescript": "^6.0.3"
+  }
+}
