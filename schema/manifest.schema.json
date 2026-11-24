@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/whatszori/plugin-sdk/schema/manifest.schema.json",
+  "title": "WhatsZori plugin manifest",
+  "type": "object",
+  "required": ["id", "name", "version"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "id": {
+      "description": "Must match the plugin's folder name. Letters, digits, '.', '-' and '_'.",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "name": {
+      "description": "Shown in Settings → Plugins.",
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "description": "Semantic version, like 1.0.0.",
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+([-+][0-9A-Za-z.-]+)?$"
+    },
+    "description": { "type": "string" },
+    "author": { "type": "string" },
+    "main": {
+      "description": "The ES module to load, relative to the plugin folder. Defaults to index.js.",
+      "type": "string",
+      "pattern": "^[^/\\\\:]+(/[^/\\\\:]+)*\\.m?js$",
+      "default": "index.js"
+    }
+  }
+}
