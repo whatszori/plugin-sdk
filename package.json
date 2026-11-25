@@ -1,6 +1,6 @@
 {
   "name": "@whatszori/plugin-sdk",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Types, a JSX runtime and a CLI for building WhatsZori plugins",
   "license": "MIT",
   "author": "Obzori",

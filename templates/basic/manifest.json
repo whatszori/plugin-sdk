@@ -4,5 +4,16 @@
   "name": "{{name}}",
   "version": "0.1.0",
   "description": "A WhatsZori plugin",
-  "author": "{{author}}"
+  "author": "{{author}}",
+  "apiVersion": 2,
+  "permissions": ["composer", "messages"],
+  "settings": [
+    {
+      "key": "greeting",
+      "type": "text",
+      "label": "Greeting",
+      "description": "What the 👋 button puts into the message box.",
+      "default": "Hi!"
+    }
+  ]
 }

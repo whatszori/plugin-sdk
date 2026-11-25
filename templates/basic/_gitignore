@@ -1,2 +1,4 @@
 node_modules/
 dist/
+# signing keys never go into git
+*.key

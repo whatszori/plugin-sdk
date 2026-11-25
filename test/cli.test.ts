@@ -46,6 +46,8 @@ describe('wz-plugin', () => {
     // load it like the app does and render its slots
     const slots = new Map<SlotName, React.ComponentType<never>>();
     const events: string[] = [];
+    const commands: string[] = [];
+    const panels: string[] = [];
     const Btn = ({ label }: { label: string }) => React.createElement('button', null, label);
     const ctx = {
       pluginId: 'hello-world',
@@ -55,22 +57,43 @@ describe('wz-plugin', () => {
         slots.set(name, c);
         return () => slots.delete(name);
       },
-      onEvent: (name: string) => {
-        events.push(name);
-        return () => {};
+      events: {
+        onMessage: () => {
+          events.push('onMessage');
+          return () => {};
+        },
       },
+      commands: { register: (c: { id: string; shortcut?: string }) => (commands.push(`${c.id} ${c.shortcut}`), () => {}) },
+      panels: { register: (p: { id: string }) => (panels.push(p.id), () => {}) },
+      composer: { insert() {} },
       actions: { openChat() {}, insertIntoComposer() {}, toast() {} },
       data: { chats: () => [], activeChat: () => null, messages: async () => [] },
-      settings: { all: async () => ({}), set: async () => {}, delete: async () => {} },
+      settings: { all: async () => ({}), get: async () => undefined, onChange: () => () => {}, set: async () => {}, delete: async () => {} },
       storage: { get: async () => null, set: async () => {}, delete: async () => {}, keys: async () => [] },
       log: { info() {}, warn() {}, error() {} },
     } as unknown as PluginContext;
     const mod = await import(pathToFileURL(join(out, 'index.js')).href);
     await mod.default.start(ctx);
-    expect([...slots.keys()].sort()).toEqual(['composer.actions', 'message.contextMenu', 'settings.sections']);
-    expect(events).toEqual(['msg:batch']);
+    expect([...slots.keys()].sort()).toEqual(['composer.actions', 'message.contextMenu']);
+    expect(events).toEqual(['onMessage']);
+    expect(commands).toEqual(['greet Ctrl+Alt+G']);
+    expect(panels).toEqual(['counter']);
+    expect(manifest).toMatchObject({ apiVersion: 2, permissions: ['composer', 'messages'] });
     const html = renderToString(React.createElement(slots.get('composer.actions')!));
     expect(html).toContain('Insert “Hi!”');
+  }, 60_000);
+
+  it('signs a build, and notices a file changed afterwards', () => {
+    const work = mkdtempSync(join(tmpdir(), 'wz-sdk-'));
+    run(['create', 'signed'], work);
+    const project = join(work, 'signed');
+    expect(run(['keygen'], project)).toMatch(/Fingerprint: [0-9a-f]{4} [0-9a-f]{4} [0-9a-f]{4} [0-9a-f]{4}/);
+    expect(() => run(['keygen'], project)).toThrow(/already exists/);
+    expect(run(['build', '--key', 'wz-plugin-signing.key'], project)).toMatch(/signed with key/);
+    const out = join(project, 'dist', 'signed');
+    expect(run(['verify', out], project)).toMatch(/signed with key/);
+    execFileSync(process.execPath, ['-e', `require('fs').appendFileSync('index.js', '//x')`], { cwd: out });
+    expect(() => run(['verify', out], project)).toThrow(/changed after signing/);
   }, 60_000);
 
   it('explains a bad manifest', () => {

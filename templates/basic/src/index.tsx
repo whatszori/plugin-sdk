@@ -2,31 +2,45 @@ import { definePlugin, type PluginContext, type SlotProps } from '@whatszori/plu
 import { useEffect, useState } from 'react';
 
 // A small plugin to start from:
-// - a button next to the emoji button that inserts a greeting,
+// - a 👋 button next to the emoji button that inserts the greeting from the settings
+//   (the settings form comes from manifest.json),
 // - "Quote" in the message menu,
-// - a settings block (Settings → Plugins) to change the greeting,
-// - a counter of messages received while the app runs.
+// - a command in the palette (Ctrl+Shift+P) with a shortcut,
+// - a side panel with how many messages arrived while the app runs.
+// manifest.json asks for "composer" and "messages"; the user allows them when turning it on.
 export default definePlugin((ctx) => {
   let received = 0;
-  ctx.onEvent('msg:batch', ({ messages }) => {
-    received += messages.filter((m) => !m.fromMe).length;
+  ctx.events.onMessage((m) => {
+    if (!m.fromMe) received++;
   });
 
   ctx.registerSlot('composer.actions', () => <GreetButton ctx={ctx} />);
   ctx.registerSlot('message.contextMenu', (p) => <QuoteItem ctx={ctx} {...p} />);
-  ctx.registerSlot('settings.sections', () => <Settings ctx={ctx} received={() => received} />);
+  ctx.commands.register({
+    id: 'greet',
+    title: 'Insert the greeting',
+    shortcut: 'Ctrl+Alt+G',
+    when: () => ctx.data.activeChat() !== null,
+    run: async () => ctx.composer.insert(String((await ctx.settings.get('greeting')) ?? 'Hi!')),
+  });
+  ctx.panels.register({
+    id: 'counter',
+    title: 'Messages so far',
+    icon: '📨',
+    render: () => <p>{received} messages received since WhatsZori started.</p>,
+  });
 
   ctx.log.info('started');
 });
 
 function GreetButton({ ctx }: { ctx: PluginContext }) {
-  const greeting = useGreeting(ctx);
+  const greeting = useSetting(ctx, 'greeting', 'Hi!');
   return (
     <ctx.ui.IconButton
       label={`Insert “${greeting}”`}
       icon={<span aria-hidden="true">👋</span>}
       tooltipPlacement="top"
-      onClick={() => ctx.actions.insertIntoComposer(greeting)}
+      onClick={() => ctx.composer.insert(greeting)}
     />
   );
 }
@@ -38,43 +52,19 @@ function QuoteItem({ ctx, message, close }: { ctx: PluginContext } & SlotProps['
       label="Quote"
       icon={<span aria-hidden="true">❝</span>}
       onSelect={() => {
-        ctx.actions.insertIntoComposer(`> ${message.text}\n`);
+        ctx.composer.insert(`> ${message.text}\n`);
         close();
       }}
     />
   );
 }
 
-function Settings({ ctx, received }: { ctx: PluginContext; received: () => number }) {
-  const greeting = useGreeting(ctx);
-  const [draft, setDraft] = useState(greeting);
-  useEffect(() => setDraft(greeting), [greeting]);
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '8px 16px' }}>
-      <ctx.ui.Input
-        aria-label="Greeting"
-        value={draft}
-        onChange={(e) => setDraft(e.target.value)}
-        onBlur={() => void ctx.settings.set('greeting', draft.trim() || 'Hi!')}
-      />
-      <span>{received()} messages received since WhatsZori started.</span>
-    </div>
-  );
-}
-
-// settings are strings kept by the app; this reads one and keeps it fresh across components
-const listeners = new Set<(g: string) => void>();
-let current = 'Hi!';
-
-function useGreeting(ctx: PluginContext): string {
-  const [g, setG] = useState(current);
+// a manifest setting, kept fresh when the user changes it in Settings → Plugins
+function useSetting(ctx: PluginContext, key: string, fallback: string): string {
+  const [value, setValue] = useState(fallback);
   useEffect(() => {
-    listeners.add(setG);
-    void ctx.settings.all().then((s) => {
-      current = s.greeting ?? current;
-      listeners.forEach((fn) => fn(current));
-    });
-    return () => void listeners.delete(setG);
-  }, [ctx]);
-  return g;
+    void ctx.settings.get<string>(key).then((v) => setValue(v ?? fallback));
+    return ctx.settings.onChange((k, v) => k === key && setValue(String(v ?? fallback)));
+  }, [ctx, key, fallback]);
+  return value;
 }

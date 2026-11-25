@@ -11,23 +11,80 @@
       "type": "string",
       "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
     },
-    "name": {
-      "description": "Shown in Settings → Plugins.",
-      "type": "string",
-      "minLength": 1
-    },
+    "name": { "description": "Shown in Settings → Plugins.", "type": "string", "minLength": 1 },
     "version": {
       "description": "Semantic version, like 1.0.0.",
       "type": "string",
-      "pattern": "^\\d+\\.\\d+\\.\\d+([-+][0-9A-Za-z.-]+)?$"
+      "pattern": "^\d+\.\d+\.\d+([-+][0-9A-Za-z.-]+)?$"
     },
     "description": { "type": "string" },
     "author": { "type": "string" },
+    "homepage": { "type": "string", "pattern": "^https://" },
     "main": {
       "description": "The ES module to load, relative to the plugin folder. Defaults to index.js.",
       "type": "string",
-      "pattern": "^[^/\\\\:]+(/[^/\\\\:]+)*\\.m?js$",
+      "pattern": "^[^/\\:]+(/[^/\\:]+)*\.m?js$",
       "default": "index.js"
+    },
+    "icon": {
+      "description": "Shown in Settings → Plugins. A .png, .svg, .jpg or .webp in the plugin folder.",
+      "type": "string",
+      "pattern": "^[^/\\:]+(/[^/\\:]+)*\.(png|svg|jpe?g|webp)$"
+    },
+    "apiVersion": {
+      "description": "The plugin API the plugin is written for. 2 for permissions, network, settings and sandbox; left out means 1.",
+      "type": "integer",
+      "enum": [1, 2]
+    },
+    "minAppVersion": {
+      "description": "The oldest WhatsZori the plugin runs on.",
+      "type": "string",
+      "pattern": "^\d+\.\d+\.\d+([-+][0-9A-Za-z.-]+)?$"
+    },
+    "permissions": {
+      "description": "What the plugin needs. The user sees this list and allows it before the plugin runs.",
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": ["messages", "contacts", "media", "composer", "notifications", "clipboard", "files", "chats.manage", "presence", "network"]
+      }
+    },
+    "network": {
+      "description": "Sites ctx.net.fetch may reach, and nothing else: \"api.example.com\", \"*.example.com\", \"localhost:11434\". Needs the network permission.",
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^((\*\.)?[a-z0-9.-]+|localhost|127\.0\.0\.1)(:\d{1,5})?$" }
+    },
+    "settings": {
+      "description": "A settings form WhatsZori draws in Settings → Plugins; read the values with ctx.settings.get(key).",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["key", "type", "label"],
+        "properties": {
+          "key": { "type": "string", "pattern": "^[A-Za-z0-9_.-]{1,64}$" },
+          "type": { "enum": ["text", "password", "textarea", "toggle", "select", "number"] },
+          "label": { "type": "string", "minLength": 1 },
+          "description": { "type": "string" },
+          "placeholder": { "type": "string" },
+          "default": { "type": ["string", "number", "boolean"] },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["value", "label"],
+              "properties": { "value": { "type": "string" }, "label": { "type": "string" } }
+            }
+          },
+          "min": { "type": "number" },
+          "max": { "type": "number" }
+        }
+      }
+    },
+    "sandbox": {
+      "description": "Run in a worker without the page or the network, with a declarative UI. Needs a single bundled file.",
+      "type": "boolean"
     }
   }
 }
