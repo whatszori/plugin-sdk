@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.0 (unreleased)
+## 0.2.0 (2026-11-25)
 
 Plugin API 2, for WhatsZori 0.2.0.
 
@@ -15,7 +15,7 @@ Plugin API 2, for WhatsZori 0.2.0.
   you to turn the plugin off and on, the app reloads it
 - The template uses API 2: permissions, a settings form, a command and a panel
 
-## 0.1.0 (unreleased)
+## 0.1.0 (never published)
 
 - Types for the whole plugin API: context, slots, stock UI components, typed backend events
 - `definePlugin`, a JSX runtime and `react` forwarders that run on the app's React

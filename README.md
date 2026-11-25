@@ -48,9 +48,6 @@ export default definePlugin((ctx) => {
 
 ## Quick start
 
-> The package isn't on npm yet. Until it is, clone this repo, run `npm install` and `npm link`
-> there, then `npm link @whatszori/plugin-sdk` in your plugin.
-
 ```sh
 npx @whatszori/plugin-sdk create my-plugin
 cd my-plugin
